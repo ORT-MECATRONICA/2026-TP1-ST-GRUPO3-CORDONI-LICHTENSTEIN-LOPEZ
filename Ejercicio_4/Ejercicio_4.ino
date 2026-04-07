@@ -7,6 +7,19 @@ López
 Ejercicio 4
 */
 
+//defines e includes
+#include <Adafruit_Sensor.h>
+#include <DHT.h>
+#include <U8g2lib.h>
+#include <TimerOne.h>
+
+#define SWITCH_1 35
+#define SWITCH_2 34
+
+#define LED 23
+#define DHTPIN 24
+#define DHTTYPE DHT11
+
 //tipos de variables
 typedef enum {
   P1,
@@ -23,18 +36,6 @@ void imprimirTemperaturaYUmbral();
 void imprimirUmbral();
 void controlLed();
 
-//defines e includes
-#include <Adafruit_Sensor.h>
-#include <DHT.h>
-#include <U8g2lib.h>
-
-#define SWITCH_1 35
-#define SWITCH_2 34
-
-#define LED 23
-#define DHTPIN 24
-#define DHTTYPE DHT11
-
 //config
 DHT dht(DHTPIN, DHTTYPE);
 U8G2_SH1106_128X64_NONAME_F_HW_I2C u8g2(U8G2_R0, /*reset*/ U8X8_PIN_NONE);
@@ -48,6 +49,7 @@ int SW2;
 float umbralGrados = 28.0;
 
 float temperatura;
+int segundos = 0;
 
 void setup() {
   //inicio
@@ -56,7 +58,9 @@ void setup() {
   Serial.println("Inicio \n________");
   Serial.println();
 
-
+  //timer1
+  Timer1.initialize(1000000);  //1 segundo
+  Timer1.attachInterrupt(timer);
   //setup
   pinMode(SWITCH_1, INPUT);
   pinMode(SWITCH_2, INPUT);
@@ -75,20 +79,18 @@ void loop() {
   SW1 = digitalRead(SWITCH_1);
   SW2 = digitalRead(SWITCH_2);
 
-  float t = dht.readTemperature();
-  if (isnan(t)) {
-    Serial.println("Error leyendo DHT");
-  } else {
-    temperatura = t;
-    Serial.println(temperatura);
+  if (segundos >= 2) {
+    temperatura = dht.readTemperature();
+    segundos = 0;
   }
 
   maquinaDeEstados();
   controlLed();
 }
 
-
-
+void timer() {
+  segundos++;
+}
 void maquinaDeEstados() {
   switch (estado) {
     case P1:
@@ -139,10 +141,10 @@ void maquinaDeEstados() {
     case esperaDisminucion:
       imprimirUmbral();
       //
-      if (SW1 == HIGH && SW2 == HIGH) {
+      if (SW1 == LOW && SW2 == LOW) {
         estado = espera2;
       }
-      if (SW1 == LOW && SW2 == LOW) {
+      if (SW1 == HIGH && SW2 == HIGH) {
         umbralGrados--;
         estado = P2;
       }
