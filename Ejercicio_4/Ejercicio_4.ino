@@ -23,8 +23,15 @@ void maquinaDeEstados();
 //defines e includes
 #include <TimerOne.h>
 
-#define SWITCH_1  //pin
-#define SWITCH_2  //pin
+#define SWITCH_1 35
+#define SWITCH_2 34
+
+#define DHTPIN 24
+#define DHTTYPE DHT11
+
+//config
+DHT dht(DHTPIN, DHTTYPE);
+U8G2_SH1106_128X64_NONAME_F_HW_I2C u8g2(U8G2_R0, /*reset*/ U8X8_PIN_NONE);
 
 //variables
 tipoEstado estado = P1;
@@ -42,8 +49,8 @@ void setup() {
   Serial.println();
 
   //setup
-  pinMode(SWITCH_1, INPUT /*_PULLUP*/);
-  pinMode(SWITCH_2, INPUT /*_PULLUP*/);
+  pinMode(SWITCH_1, INPUT);
+  pinMode(SWITCH_2, INPUT);
 
   //máquina de estados
   estado = P1;
