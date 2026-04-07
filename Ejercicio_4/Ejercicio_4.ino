@@ -14,7 +14,7 @@ typedef enum {
   espera1,
   espera2,
   esperaAumento,
-  esperaDsiminucion
+  esperaDisminucion
 } tipoEstado;
 
 //funciones
@@ -47,7 +47,7 @@ int SW2;
 
 float umbralGrados = 28.0;
 
-float grados;
+float temperatura;
 
 void setup() {
   //inicio
@@ -61,6 +61,8 @@ void setup() {
   pinMode(SWITCH_1, INPUT);
   pinMode(SWITCH_2, INPUT);
 
+  pinMode(LED, OUTPUT);
+
   dht.begin();
   u8g2.begin();
   u8g2.clearBuffer();
@@ -73,8 +75,16 @@ void loop() {
   SW1 = digitalRead(SWITCH_1);
   SW2 = digitalRead(SWITCH_2);
 
-  grados = dht.readTemperature();
+  float t = dht.readTemperature();
+  if (isnan(t)) {
+    Serial.println("Error leyendo DHT");
+  } else {
+    temperatura = t;
+    Serial.println(temperatura);
+  }
+
   maquinaDeEstados();
+  controlLed();
 }
 
 
@@ -144,15 +154,15 @@ void imprimirTemperaturaYUmbral() {
   u8g2.clearBuffer();
   u8g2.setFont(u8g2_font_ncenB14_tr);
 
-  u8g2.drawStr(0, 20, "Actual: ");
+  u8g2.drawStr(0, 20, "Actual:");
+  char stringTemp[10];
+  sprintf(stringTemp, "%.1fC", temperatura);
+  u8g2.drawStr(80, 20, stringTemp);
 
-  char stringtemp[10];
-  sprintf(stringTemp, "%.1f", temperatura);
-  u8g2.drawStr(70, 20, stringTemp);
-
-  u8g2.drawStr(0, 40, "Umbral: ") char stringtemp[10];
-  sprintf(stringUmb, "%.1f", umbralGrados);
-  u8g2.drawStr(20, 50, stringUmb);
+  u8g2.drawStr(0, 40, "Umbral:");
+  char stringUmb[10];
+  sprintf(stringUmb, "%.1fC", umbralGrados);
+  u8g2.drawStr(80, 40, stringUmb);
 
   u8g2.sendBuffer();
 }
@@ -161,15 +171,16 @@ void imprimirUmbral() {
   u8g2.clearBuffer();
   u8g2.setFont(u8g2_font_ncenB14_tr);
 
-  u8g2.drawStr(0, 40, "Umbral: ") char stringtemp[10];
-  sprintf(stringUmb, "%.1f", umbralGrados);
-  u8g2.drawStr(0, 20, stringUmb);
+  u8g2.drawStr(0, 40, "Umbral:");
+  char stringUmb[10];
+  sprintf(stringUmb, "%.1fC", umbralGrados);
+  u8g2.drawStr(80, 40, stringUmb);  // alineado igual
 
   u8g2.sendBuffer();
 }
 
-void controlLed(){
-  if (temperatura >= umbral) {
+void controlLed() {
+  if (temperatura >= umbralGrados) {
     digitalWrite(LED, HIGH);
   }
 }
